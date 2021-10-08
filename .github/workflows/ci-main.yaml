@@ -115,7 +115,7 @@ jobs:
           cache-to: type=inline
       - name: FOSSA
         run: |
-          "curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | sudo bash"
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | bash
           poetry export --without-hashes >requirements.txt
           fossa test
           rm -f requirements.txt
