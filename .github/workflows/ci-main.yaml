@@ -73,21 +73,6 @@ jobs:
         id: matrix
         uses: splunk/addonfactory-test-matrix-action@v1
 
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: snyk/actions/setup@master
-      - name: Snyk monitor
-        run: |
-          echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-          echo Branch is $BRANCH gh env is $GITHUB_ENV
-          if [ "$GITHUB_ENV" == "main" ]; then MODE=monitor ;else MODE=test ;fi
-          echo Mode is $MODE
-          snyk monitor --all-projects
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
   build_action:
     runs-on: ubuntu-latest
     name: Build Action
@@ -128,15 +113,14 @@ jobs:
             REVISION=${{ needs.meta.outputs.container_revision }}
           cache-from: type=registry,ref=${{ needs.meta.outputs.container_base }}
           cache-to: type=inline
-      - uses: snyk/actions/setup@master
-      - name: Snyk monitor
+      - name: FOSSA
         run: |
-          echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-          if [ "$GITHUB_ENV" == "main" ]; then MODE=monitor ;else MODE=test ;fi
-          echo Mode is $MODE
-          snyk container monitor ${{needs.meta.outputs.sc4s}} --file=package/Dockerfile
+          "curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | sudo bash"
+          poetry export --without-hashes >requirements.txt
+          fossa test
+          rm -f requirements.txt
         env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
 
   test-container:
     runs-on: ubuntu-latest
