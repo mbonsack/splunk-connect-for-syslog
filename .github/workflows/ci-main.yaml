@@ -115,12 +115,11 @@ jobs:
           cache-to: type=inline
       - name: FOSSA
         run: |
-          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install.sh | bash
           poetry export --without-hashes >requirements.txt
-          fossa test
-          rm -f requirements.txt
-        env:
-          FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+      - name: Run FOSSA scan and upload build data
+        uses: fossa-contrib/fossa-action@v1
+        with:
+          fossa-api-key: ${{ secrets.FOSSA_API_KEY }}
 
   test-container:
     runs-on: ubuntu-latest
